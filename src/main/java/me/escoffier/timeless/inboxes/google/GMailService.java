@@ -71,7 +71,7 @@ public class GMailService implements Inbox {
     }
 
     @PostConstruct
-    public List<StarredThread> fetch() {
+    public void fetch() {
         logger.info("\uD83D\uDEB6  Retrieving starred emails from Gmail...");
         List<StarredThread> messages = new ArrayList<>();
         for (Account account : accounts.accounts().values()) {
@@ -83,7 +83,6 @@ public class GMailService implements Inbox {
         }
         fetched = new ArrayList<>(messages);
         logger.infof("\uD83D\uDEB6  %d starred emails retrieved", fetched.size());
-        return fetched;
     }
 
     public Collection<StarredThread> getStarredMessages(Account account) throws IOException {

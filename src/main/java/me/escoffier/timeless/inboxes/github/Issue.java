@@ -1,6 +1,6 @@
 package me.escoffier.timeless.inboxes.github;
 
-import me.escoffier.timeless.helpers.ProjectHints;
+import me.escoffier.timeless.helpers.Hints;
 import me.escoffier.timeless.model.NewTaskRequest;
 
 import static me.escoffier.timeless.helpers.DueDates.todayOrTomorrow;
@@ -29,15 +29,17 @@ public class Issue {
         return "open".equalsIgnoreCase(state);
     }
 
-    public NewTaskRequest asNewTaskRequest(ProjectHints hints) {
+    public NewTaskRequest asNewTaskRequest(Hints hints) {
         String content = getTaskName();
+        Hints.Hint hint = hints.lookup(html_url);
         NewTaskRequest request = new NewTaskRequest(
                 content,
                 html_url,
-                hints.lookup(html_url),
+                hint.project(),
+                hint.section().orElse(null),
                 todayOrTomorrow()
         );
-        request.addLabels("Devel","timeless/github");
+        request.addLabels("Devel", "timeless/github");
         return request;
     }
 

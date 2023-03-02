@@ -1,19 +1,16 @@
 package me.escoffier.timeless.todoist;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
 import me.escoffier.timeless.model.Label;
 import me.escoffier.timeless.model.Project;
+import me.escoffier.timeless.model.Section;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.annotation.ClientHeaderParam;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,6 +21,7 @@ public interface Todoist {
 
     @POST
     @Path("/sync/v9/sync")
+    @ClientHeaderParam(name = "Authorization", value = "{lookupAuth}")
     SyncResponse sync(SyncRequest request);
 
     @POST
@@ -105,6 +103,10 @@ public interface Todoist {
         public TaskCreationRequest withLabels(List<String> labels) {
             return new TaskCreationRequest(content(), due(), priority(), project(), labels, section(), description());
         }
+
+        public TaskCreationRequest withSection(String section) {
+            return new TaskCreationRequest(content(), due(), priority(), project(), labels, section, description());
+        }
     }
 
     record ProjectCreationRequest(String name, String parent_id) {
@@ -116,10 +118,6 @@ public interface Todoist {
         public static SectionCreationRequest create(String name, String project_id) {
             return new SectionCreationRequest(name, project_id);
         }
-    }
-
-    record Section(String id, String project_id, String name) {
-
     }
 
     record LabelCreationRequest(String name) {

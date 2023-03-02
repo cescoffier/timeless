@@ -12,6 +12,9 @@ public class Task {
     public String id;
     public String content;
     public String project_id;
+
+    public String section_id;
+
     public int priority;
     public String parentTaskId;
     public boolean checked;
@@ -24,6 +27,15 @@ public class Task {
 
     public Task() {
         // Used by jsonb
+    }
+
+    public boolean hasLabel(String label) {
+        for (String s : labels) {
+            if (label.equalsIgnoreCase(s)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isCompleted() {
@@ -43,28 +55,4 @@ public class Task {
         return content + " (" + id + ")";
     }
 
-    public static String sanitize(String name) {
-        Objects.requireNonNull(name);
-
-        if (name.startsWith("\"") && name.endsWith("\"")) {
-            name = name.substring(1, name.length() - 1);
-        }
-
-        name = name
-                .replace("!", "")
-                .replace("#", "")
-                .replace("@", "")
-                .replace("::", "")
-                .replace(":", " ")
-                .replace("\n", "")
-                .replace("\t", " ")
-                .replace("\"", "`")
-                .replace("'", "`")
-                .replace("//", " ")
-                .replace("  ", " ")
-                .replace("%20", " ")
-                .trim();
-
-        return name;
-    }
 }

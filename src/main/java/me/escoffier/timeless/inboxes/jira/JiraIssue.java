@@ -1,6 +1,5 @@
 package me.escoffier.timeless.inboxes.jira;
 
-import me.escoffier.timeless.helpers.ProjectHints;
 import me.escoffier.timeless.model.NewTaskRequest;
 
 import static me.escoffier.timeless.helpers.DueDates.todayOrTomorrow;

@@ -8,9 +8,17 @@ public interface Backend {
 
     // Queries:
 
+    List<Section> getSection(Project project);
+
     List<Task> getAllTasks();
 
     List<Project> getProjects();
+
+    List<Project> getProjectRoots();
+
+    List<Project> getSubProject(Project project);
+    boolean isArea(Project project);
+
 
     List<Task> getMatchingTasks(Predicate<Task> predicate);
 
@@ -30,4 +38,6 @@ public interface Backend {
     void create(NewTaskRequest request);
 
     void complete(Task task);
+
+    Project getProject(String name);
 }

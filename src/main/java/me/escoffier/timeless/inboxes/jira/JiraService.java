@@ -17,6 +17,7 @@ import org.jboss.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ public class JiraService implements Inbox {
 
 
     private final List<JiraIssue> issues = new ArrayList<>();
+
 
     @PostConstruct
     public void fetch() throws URISyntaxException {

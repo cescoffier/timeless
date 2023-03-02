@@ -126,7 +126,7 @@ public class GoogleDriveService implements Inbox {
     }
 
     @PostConstruct
-    public List<UnresolvedComment> fetch() {
+    public void fetch() {
         logger.info("\uD83D\uDEB6  Retrieving follow-up tasks from Google Drive...");
         Set<UnresolvedComment> comments = new HashSet<>();
         try {
@@ -139,7 +139,6 @@ public class GoogleDriveService implements Inbox {
 
             fetched = new ArrayList<>(comments);
             logger.infof("\uD83D\uDEB6  %d unresolved comments from Google Drive retrieved", fetched.size());
-            return fetched;
         } catch (Exception e) {
             throw new IllegalStateException("\uD83D\uDC7F Unable to retrieve messages from Google Drive", e);
         }

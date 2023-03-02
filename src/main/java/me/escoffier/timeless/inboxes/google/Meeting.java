@@ -1,6 +1,7 @@
 package me.escoffier.timeless.inboxes.google;
 
 import com.google.api.services.calendar.model.Event;
+import me.escoffier.timeless.helpers.Hints;
 import me.escoffier.timeless.model.NewTaskRequest;
 
 public class Meeting {
@@ -23,7 +24,7 @@ public class Meeting {
         return date;
     }
 
-    public NewTaskRequest asNewTaskRequest(String projectIfAny) {
+    public NewTaskRequest asNewTaskRequest(Hints.Hint projectIfAny) {
         return new Meeting.MeetingTaskRequest(this, projectIfAny);
     }
 
@@ -39,13 +40,14 @@ public class Meeting {
 
         private final Meeting meeting;
 
-        public MeetingTaskRequest(Meeting meeting, String project) {
+        public MeetingTaskRequest(Meeting meeting, Hints.Hint hint) {
             super(meeting.content(),
-                    project,
+                    hint.project(),
                     meeting.date);
             this.meeting = meeting;
+            this.section = hint.section().orElse(null);
             setPriority(2);
-            addLabels("meeting");
+            addLabels("Meeting");
             addLabels("timeless/gcal");
         }
 
