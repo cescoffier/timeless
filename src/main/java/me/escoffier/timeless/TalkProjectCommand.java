@@ -2,6 +2,7 @@ package me.escoffier.timeless;
 
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Project;
+import me.escoffier.timeless.model.Section;
 import me.escoffier.timeless.todoist.Todoist;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -76,7 +77,7 @@ public class TalkProjectCommand implements Runnable {
         if (requireTravel) {
             System.out.println("⚙️  Creating travel section...");
             Todoist.SectionCreationRequest scr = Todoist.SectionCreationRequest.create("Travel", project.id());
-            Todoist.Section section = todoist.createSection(scr);
+            Section section = todoist.createSection(scr);
             // If travel - Estimate budget, Ask for budget, Wait for approval, Book travel, Book hotel, Add calendar slot (day - 7)
             System.out.println("⚙️  Creating travelling tasks...");
             Todoist.TaskCreationRequest tcr = Todoist.TaskCreationRequest.create(eventName + " - Estimate travel budget",
@@ -111,7 +112,7 @@ public class TalkProjectCommand implements Runnable {
         if (needSubmission) {
             System.out.println("⚙️  Creating CFP section...");
             Todoist.SectionCreationRequest scr = Todoist.SectionCreationRequest.create("CFP", project.id());
-            Todoist.Section section = todoist.createSection(scr);
+            Section section = todoist.createSection(scr);
             // If submission (CFP website + deadline) - Write abstract, Submit abstract, Save title/abstract, Wait for acceptance
             System.out.println("⚙️  Creating CFP tasks...");
             Todoist.TaskCreationRequest tcr = Todoist.TaskCreationRequest.create(eventName + " - Write title and abstract", project.id(), section.id())
@@ -131,7 +132,7 @@ public class TalkProjectCommand implements Runnable {
 
         System.out.println("⚙️  Creating Material section...");
         Todoist.SectionCreationRequest scr = Todoist.SectionCreationRequest.create("Material", project.id());
-        Todoist.Section section = todoist.createSection(scr);
+        Section section = todoist.createSection(scr);
         System.out.println("⚙️  Creating Material tasks in  section " + section.name() + "(" + section.id() + ")");
         Todoist.TaskCreationRequest tcr = Todoist.TaskCreationRequest.create(eventName + " - Create slide deck files and directory", project.id(), section.id())
                 .withPriority(3);

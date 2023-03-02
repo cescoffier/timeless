@@ -5,7 +5,6 @@ import com.atlassian.jira.rest.client.api.AuthenticationHandler;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
-import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import io.quarkus.arc.log.LoggerName;
 import jakarta.annotation.PostConstruct;
@@ -20,7 +19,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +51,7 @@ public class JiraService implements Inbox {
 
 
     private final List<JiraIssue> issues = new ArrayList<>();
+
 
     @PostConstruct
     public void fetch() throws URISyntaxException {

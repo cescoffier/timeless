@@ -3,8 +3,10 @@ package me.escoffier.timeless.inboxes.google;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
+
 import jakarta.annotation.PostConstruct;
-import me.escoffier.timeless.helpers.ProjectHints;
+import me.escoffier.timeless.helpers.Hints;
+
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.NewTaskRequest;
@@ -19,7 +21,9 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static me.escoffier.timeless.helpers.Hints.NO_HINT;
+
 
 @ApplicationScoped
 public class CalendarService implements Inbox {
@@ -29,8 +33,7 @@ public class CalendarService implements Inbox {
     @ConfigProperty(name = "meetings.ignored-meetings")
     List<String> ignored;
 
-    @ConfigProperty(name = "meetings.hints")
-    ProjectHints hints;
+    @Inject Hints hints;
 
     @Inject GoogleAccounts accounts;
     @Inject Logger logger;
@@ -50,7 +53,7 @@ public class CalendarService implements Inbox {
 
         List<Runnable> actions = new ArrayList<>();
         for (Meeting meeting : fetched) {
-            NewTaskRequest request = meeting.asNewTaskRequest(getProjectIfAny(meeting));
+            NewTaskRequest request = meeting.asNewTaskRequest(getHint(meeting));
             Optional<Task> maybe = findTask(existingMeetingTasks, request);
             if (maybe.isEmpty()) {
                 // Case 1
@@ -95,7 +98,7 @@ public class CalendarService implements Inbox {
         fetched.removeIf(m -> ignored.contains(m.getTitle()));
     }
 
-    private String getProjectIfAny(Meeting meeting) {
+    private Hints.Hint getHint(Meeting meeting) {
         return hints.lookup(meeting.getTitle());
     }
 

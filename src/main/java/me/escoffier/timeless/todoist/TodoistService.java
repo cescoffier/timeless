@@ -2,6 +2,7 @@ package me.escoffier.timeless.todoist;
 
 import jakarta.annotation.PostConstruct;
 import me.escoffier.timeless.model.*;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
@@ -29,7 +30,14 @@ public class TodoistService implements Backend {
     private List<Task> tasks;
     private List<Label> labels;
 
+    private Map<Project, List<Section>> sectionsPerProject;
+
+
+    private List<Project> roots;
+
     @Inject @RestClient Todoist todoist;
+
+    @ConfigProperty(name = "todoist.area-prefixes") List<String> prefixesForAreaOfResponsibility;
 
     @Inject @RestClient
     TodoistV9 v9;
@@ -38,6 +46,9 @@ public class TodoistService implements Backend {
 
     @PostConstruct
     void fetch() {
+        roots = new ArrayList<>();
+        sectionsPerProject = new HashMap<>();
+
         SyncResponse response = todoist.sync(SyncRequest.INSTANCE);
 
         ZonedDateTime time = Instant.now().minus(Duration.ofDays(7))
@@ -53,15 +64,30 @@ public class TodoistService implements Backend {
 
         projects = response.projects();
         response.items().forEach(t -> t.project = getProjectPerId(t.project_id));
+
+        for (Project project : projects) {
+            if (project.parent() == null) {
+                roots.add(project);
+            }
+        }
+
+        for (Section section : response.sections()) {
+            var p = getProjectPerId(section.project_id());
+            sectionsPerProject.computeIfAbsent(p, x -> new ArrayList<>()).add(section);
+        }
+
         this.tasks = response.items();
         labels = response.labels();
     }
 
-    public void addTask(String content, String deadline, Project project, int priority, List<String> labels, String description) {
+    public void addTask(String content, String deadline, Project project, String section, int priority, List<String> labels, String description) {
         Todoist.TaskCreationRequest request = Todoist.TaskCreationRequest.create(content, null).withDescription(description);
 
         if (project != null) {
             request = request.withProject(project.id());
+        }
+        if (section != null) {
+            request = request.withSection(section);
         }
         if (deadline != null) {
             request = request.withDue(deadline);
@@ -100,6 +126,15 @@ public class TodoistService implements Backend {
     }
 
     @Override
+    public List<Section> getSection(Project project) {
+        var l = sectionsPerProject.get(project);
+        if (l == null) {
+            return Collections.emptyList();
+        }
+        return l;
+    }
+
+    @Override
     public List<Task> getAllTasks() {
         return Collections.unmodifiableList(tasks);
     }
@@ -107,6 +142,26 @@ public class TodoistService implements Backend {
     @Override
     public List<Project> getProjects() {
         return Collections.unmodifiableList(projects);
+    }
+
+    @Override
+    public List<Project> getProjectRoots() {
+        return roots;
+    }
+
+    @Override
+    public List<Project> getSubProject(Project project) {
+        return projects.stream().filter(p -> project.id().equalsIgnoreCase(p.parent())).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isArea(Project project) {
+        for (String prefix : prefixesForAreaOfResponsibility) {
+            if (project.name().startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -139,15 +194,26 @@ public class TodoistService implements Backend {
     public void create(NewTaskRequest request) {
         LOGGER.infof("\uD83D\uDD04 Creating new task: %s", request.content + ": " + request.getDescription());
         Project project = inbox;
+        String section = null;
         if (request.project != null) {
             project = getProjectByName(request.project);
         }
-        addTask(request.content, request.due, project, request.priority, request.labels, request.getDescription());
+        if (request.section != null  && project != null) {
+            var l = getSection(project);
+            section = l.stream().filter(s -> s.name().contains(request.section)).map(Section::id).findFirst()
+                    .orElseThrow(() -> new NoSuchElementException("No section " + request.section + " in " + request.project));
+        }
+        addTask(request.content, request.due, project, section, request.priority, request.labels, request.description);
     }
 
     @Override
     public void complete(Task task) {
         LOGGER.infof("\uD83D\uDD04 Completing task: %s (%s)", task.content, task.id);
         todoist.completeTask(task.id);
+    }
+
+    @Override
+    public Project getProject(String name) {
+        return projects.stream().filter(p -> p.name().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 }

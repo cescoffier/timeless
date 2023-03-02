@@ -1,7 +1,8 @@
 package me.escoffier.timeless.inboxes.github;
 
 import jakarta.annotation.PostConstruct;
-import me.escoffier.timeless.helpers.ProjectHints;
+import jakarta.inject.Inject;
+import me.escoffier.timeless.helpers.Hints;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.NewTaskRequest;
@@ -21,7 +22,6 @@ import java.util.Optional;
 import java.util.concurrent.*;
 
 import static me.escoffier.timeless.helpers.DueDates.inThreeDays;
-import static me.escoffier.timeless.helpers.DueDates.todayOrTomorrow;
 
 @ApplicationScoped
 public class GithubService implements Inbox {
@@ -34,7 +34,8 @@ public class GithubService implements Inbox {
 
     @ConfigProperty(name = "github.username") String username;
 
-    @ConfigProperty(name = "github.hints") ProjectHints hints;
+    @Inject
+    Hints hints;
 
     private final List<Issue> issues = new ArrayList<>();
     private final List<Review> reviews = new ArrayList<>();
@@ -76,7 +77,7 @@ public class GithubService implements Inbox {
 
     @Retry
     @Timeout(10000)
-    void getPullRequestForProjects(GitHub github, List<GHPullRequest> prs, CountDownLatch latch, String repo) {
+    public void getPullRequestForProjects(GitHub github, List<GHPullRequest> prs, CountDownLatch latch, String repo) {
         try {
             GHRepository repository = github.getRepository(repo);
             prs.addAll(repository.getPullRequests(GHIssueState.OPEN));
@@ -193,7 +194,7 @@ public class GithubService implements Inbox {
         // 3 - If backend contains issue tasks (existingFollowUps) without an associated PR in fetched -> complete task
 
         for (GHPullRequest pr : followUps) {
-            NewTaskRequest request = createFollowUpTaskRequestForPr(pr);
+            NewTaskRequest request = createFollowUpTaskRequestForPr(pr, hints);
             Optional<Task> maybe = backend.getTaskMatchingRequest(request);
 
             if (maybe.isEmpty()) {
@@ -204,7 +205,7 @@ public class GithubService implements Inbox {
 
         for (Task task : existingFollowUps) {
             Optional<NewTaskRequest> r = followUps.stream()
-                    .map(this::createFollowUpTaskRequestForPr)
+                    .map(pr -> createFollowUpTaskRequestForPr(pr, hints))
                     .filter(s -> task.content.startsWith(s.content))
                     .findFirst();
             if (r.isEmpty()) {
@@ -216,12 +217,15 @@ public class GithubService implements Inbox {
         return actions;
     }
 
-    private NewTaskRequest createFollowUpTaskRequestForPr(GHPullRequest pr) {
+    private NewTaskRequest createFollowUpTaskRequestForPr(GHPullRequest pr, Hints hints) {
         String content = "Follow Up PR " + pr.getTitle();
+
+        var h = hints.lookup(pr.getHtmlUrl().toExternalForm());
         NewTaskRequest request = new NewTaskRequest(
                 content,
                 pr.getHtmlUrl().toExternalForm(),
-                hints.lookup(pr.getHtmlUrl().toExternalForm()),
+                h.project(),
+                h.section().orElse(null),
                 inThreeDays()
         );
         request.addLabels("Devel","timeless/github");
