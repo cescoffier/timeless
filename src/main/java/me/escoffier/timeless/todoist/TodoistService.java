@@ -67,10 +67,10 @@ public class TodoistService implements Backend {
             request = request.withDue(deadline);
         }
         if (priority != -1) {
-            request.withPriority(priority);
+            request = request.withPriority(priority);
         }
         if (! labels.isEmpty()) {
-            request.withLabels(getLabelIds(labels));
+            request = request.withLabels(labels);
         }
         todoist.addTask(request);
     }
