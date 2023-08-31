@@ -1,18 +1,15 @@
 package me.escoffier.timeless.todoist;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.*;
 import me.escoffier.timeless.model.Label;
 import me.escoffier.timeless.model.Project;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.annotation.ClientHeaderParam;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +67,7 @@ public interface Todoist {
             @JsonProperty("due_string") String due,
             int priority,
             @JsonProperty("project_id") @JsonInclude(JsonInclude.Include.NON_DEFAULT) String project,
-            @JsonProperty("label_ids") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> labels,
+            @JsonProperty("labels") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> labels,
             @JsonProperty("section_id") @JsonInclude(JsonInclude.Include.NON_DEFAULT) String section,
             @JsonInclude(JsonInclude.Include.NON_EMPTY) String description
     ) {

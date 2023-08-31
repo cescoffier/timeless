@@ -1,18 +1,18 @@
 package me.escoffier.timeless;
 
-import me.escoffier.timeless.inboxes.jira.JiraService;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.Task;
 import org.jboss.logging.Logger;
 import picocli.CommandLine;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @ApplicationScoped
 @CommandLine.Command(name = "sync", description = "Sync Todoist tasks with Gmail, Github, Pocket...")
@@ -27,10 +27,13 @@ public class SyncCommand implements Runnable {
     @Override
     public void run() {
         List<Runnable> plan = new ArrayList<>();
+        AtomicInteger boxCount = new AtomicInteger();
 
-        inboxes.forEach(i -> plan.addAll(i.getPlan(backend)));
+        LOGGER.infof("Found %d inboxes", inboxes.stream().count());
 
-        LOGGER.infof("\uD83D\uDEB6 Executing plan containing %d actions", plan.size());
+        inboxes.stream().forEach(i -> { boxCount.getAndIncrement(); plan.addAll(i.getPlan(backend)); });
+
+        LOGGER.infof("\uD83D\uDEB6 Executing plan containing %d actions from %d inboxes", plan.size(), boxCount);
         plan.forEach(r -> {
             try {
                 r.run();
