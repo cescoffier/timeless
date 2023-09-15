@@ -1,5 +1,6 @@
 package me.escoffier.timeless;
 
+import me.escoffier.timeless.inboxes.google.GoogleDriveService;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.Task;
@@ -33,7 +34,7 @@ public class SyncCommand implements Runnable {
 
         inboxes.stream().forEach(i -> { boxCount.getAndIncrement(); plan.addAll(i.getPlan(backend)); });
 
-        LOGGER.infof("\uD83D\uDEB6 Executing plan containing %d actions from %d inboxes", plan.size(), boxCount);
+        LOGGER.infof("\uD83D\uDEB6? Executing plan containing %d actions from %d inboxes", plan.size(), boxCount.get());
         plan.forEach(r -> {
             try {
                 r.run();

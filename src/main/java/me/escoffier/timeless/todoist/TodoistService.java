@@ -137,12 +137,12 @@ public class TodoistService implements Backend {
 
     @Override
     public void create(NewTaskRequest request) {
-        LOGGER.infof("\uD83D\uDD04 Creating new task: %s", request.content + ": " + request.description);
+        LOGGER.infof("\uD83D\uDD04 Creating new task: %s", request.content + ": " + request.getDescription());
         Project project = inbox;
         if (request.project != null) {
             project = getProjectByName(request.project);
         }
-        addTask(request.content, request.due, project, request.priority, request.labels, request.description);
+        addTask(request.content, request.due, project, request.priority, request.labels, request.getDescription());
     }
 
     @Override

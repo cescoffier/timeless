@@ -42,8 +42,8 @@ public class UnresolvedComment {
     }
 
     public String content() {
-        return String
-                .format("[Pending comment in %s (%s)](%s)", document.getName(), comment.getAnchor(), link());
+         return String
+                .format("[Pending comment in '%s' (%s)](%s)", document.getName(), comment.getAnchor(), link());
     }
 
     private static class UnresolvedCommentTaskRequest extends NewTaskRequest {
@@ -55,11 +55,18 @@ public class UnresolvedComment {
                     null,
                     todayOrTomorrow());
             this.comment = comment;
+
         }
 
         @Override
         public String getIdentifier() {
             return comment.comment.getId();
+        }
+
+        @Override
+        public String getDescription() {
+            return String.format("comment: %s\n\ncontext: %s", comment.comment.getContent(), comment.comment.getQuotedFileContent()==null?"n/a":comment.comment.getQuotedFileContent().getValue());
+
         }
     }
 }

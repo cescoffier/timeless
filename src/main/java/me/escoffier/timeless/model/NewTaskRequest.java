@@ -11,7 +11,7 @@ public class NewTaskRequest {
     public final String due;
     public final List<String> labels = new ArrayList<>();
     public int priority = -1;
-    public final String description;
+    private final String description;
 
     public NewTaskRequest(String content, String project, String due) {
         this.content = content;
@@ -37,5 +37,9 @@ public class NewTaskRequest {
 
     public String getIdentifier() {
         return content;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
