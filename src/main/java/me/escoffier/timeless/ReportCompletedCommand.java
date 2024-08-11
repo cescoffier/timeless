@@ -35,8 +35,7 @@ public class ReportCompletedCommand implements Runnable {
                 .atZone(ZoneOffset.UTC)
                 .with(HOUR_OF_DAY, 0).with(MINUTE_OF_HOUR, 0);
         String since = DateTimeFormatter.ISO_INSTANT.format(time);
-        TodoistV9.CompletedTaskRequest req = new TodoistV9.CompletedTaskRequest(since);
-        TodoistV9.CompletedTasksResponse resp = todoist.getCompletedTasks(req);
+        TodoistV9.CompletedTasksResponse resp = todoist.getCompletedTasks(200, since);
         Map<String, Project> projects = resp.projects;
         List<TodoistV9.CompletedItem> items = resp.items;
 

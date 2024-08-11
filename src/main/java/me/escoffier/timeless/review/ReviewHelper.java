@@ -44,7 +44,7 @@ public class ReviewHelper {
                 .with(HOUR_OF_DAY, 0).with(MINUTE_OF_HOUR, 0);
         String since = DateTimeFormatter.ISO_INSTANT.format(time);
         TodoistV9.CompletedTasksResponse tasks = todoistV9
-                .getCompletedTasks(new TodoistV9.CompletedTaskRequest(since));
+                .getCompletedTasks(200, since);
         for (TodoistV9.CompletedItem item : tasks.items) {
             if (item.project_id.equals(weeklyReviewProject.id()) && item.completed_date != null) {
                 subTasks.add(item);

@@ -3,9 +3,8 @@ package me.escoffier.timeless;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import picocli.CommandLine;
-
 import jakarta.inject.Inject;
+import picocli.CommandLine;
 
 @QuarkusMain
 @CommandLine.Command(
@@ -14,7 +13,7 @@ import jakarta.inject.Inject;
                 SyncCommand.class,
                 ReportCompletedCommand.class,
                 WeeklyCommand.class,
-                TalkProjectCommand.class
+                TalkProjectCommand.class,
         }
 )
 public class Timeless implements QuarkusApplication {
@@ -29,7 +28,7 @@ public class Timeless implements QuarkusApplication {
 
     public static void main(String[] args) {
         if (args.length == 0) {
-            args = new String[] { "sync" };
+            args = new String[]{"sync"};
         }
         Quarkus.run(Timeless.class, args);
     }

@@ -1,5 +1,7 @@
 package me.escoffier.timeless;
 
+import io.quarkus.logging.Log;
+import me.escoffier.timeless.helpers.GoogleDriveSync;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.Project;
@@ -32,6 +34,9 @@ public class SyncCommand implements Runnable {
     @Inject
     Instance<Inbox> inboxes;
 
+    @Inject
+    GoogleDriveSync gds;
+
     @Override
     public void run() {
         List<Runnable> plan = new ArrayList<>();
@@ -62,35 +67,42 @@ public class SyncCommand implements Runnable {
         }
 
 
-        // Report
-        LOGGER.info("Sanitization Report:");
-        for (Project root : backend.getProjectRoots()) {
-            List<Project> actualProjects = new ArrayList<>();
-            traverse(backend, root, actualProjects);
+//        // Report
+//        LOGGER.info("Sanitization Report:");
+//        for (Project root : backend.getProjectRoots()) {
+//            List<Project> actualProjects = new ArrayList<>();
+//            traverse(backend, root, actualProjects);
+//
+//            actualProjects.forEach(project -> {
+//                List<Task> list = backend.getMatchingTasks(t -> t.project == project);
+//                if (!backend.isArea(project)) {
+//                    if (list.isEmpty()) {
+//                        LOGGER.warnf("The project %s has no more tasks, should it be archived?", project.name());
+//                    } else {
+//                        List<Task> next = list.stream().filter(t -> t.hasLabel("next")).toList();
+//                        if (next.isEmpty()) {
+//                            LOGGER.warnf("The project %s has no `next` task", project.name());
+//                        } else if (next.size() > 1) {
+//                            LOGGER.warnf("The project %s has multiple `next` tasks", project.name());
+//                        }
+//                    }
+//                } else {
+//                    for (Task task : list) {
+//                        if (task.section_id == null) {
+//                            LOGGER.warnf("The area of responsibility %s has tasks not organized in a section: %s", project.name(), task.content);
+//                        }
+//                    }
+//                }
+//            });
+//        }
+//        LOGGER.info("----------------------------------");
 
-            actualProjects.forEach(project -> {
-                List<Task> list = backend.getMatchingTasks(t -> t.project == project);
-                if (!backend.isArea(project)) {
-                    if (list.isEmpty()) {
-                        LOGGER.warnf("The project %s has no more tasks, should it be archived?", project.name());
-                    } else {
-                        List<Task> next = list.stream().filter(t -> t.hasLabel("next")).toList();
-                        if (next.isEmpty()) {
-                            LOGGER.warnf("The project %s has no `next` task", project.name());
-                        } else if (next.size() > 1) {
-                            LOGGER.warnf("The project %s has multiple `next` tasks", project.name());
-                        }
-                    }
-                } else {
-                    for (Task task : list) {
-                        if (task.section_id == null) {
-                            LOGGER.warnf("The area of responsibility %s has tasks not organized in a section: %s", project.name(), task.content);
-                        }
-                    }
-                }
-            });
-        }
-        LOGGER.info("----------------------------------");
+        // Rocket sync.
+//        try {
+//            gds.sync();
+//        } catch (Exception e) {
+//            Log.errorf("Unable to sync with Google Drive", e);
+//        }
 
     }
 

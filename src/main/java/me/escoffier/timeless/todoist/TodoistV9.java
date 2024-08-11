@@ -14,15 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@RegisterRestClient(baseUri = "https://todoist.com/API/v9/")
+@RegisterRestClient(baseUri = "https://todoist.com/sync/v9/")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public interface TodoistV9 {
 
-    @POST
+    @GET
     @Path("completed/get_all")
     @ClientHeaderParam(name = "Authorization", value = "{lookupAuth}")
-    CompletedTasksResponse getCompletedTasks(CompletedTaskRequest request);
+    CompletedTasksResponse getCompletedTasks(@QueryParam("limit") int limit, @QueryParam("since") String since);
 
     default String lookupAuth() {
         return "Bearer " + Todoist.token();

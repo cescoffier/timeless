@@ -55,7 +55,7 @@ public class TodoistService implements Backend {
                 .atZone(ZoneOffset.UTC)
                 .with(HOUR_OF_DAY, 0).with(MINUTE_OF_HOUR, 0);
         String since = DateTimeFormatter.ISO_INSTANT.format(time);
-        TodoistV9.CompletedTasksResponse completedTasks = v9.getCompletedTasks(new TodoistV9.CompletedTaskRequest(since));
+        TodoistV9.CompletedTasksResponse completedTasks = v9.getCompletedTasks(200, since);
 
         completed = completedTasks.toTasks();
         inbox = response.projects().stream().filter(p -> p.name().equalsIgnoreCase("Inbox"))
