@@ -1,5 +1,6 @@
 package me.escoffier.timeless;
 
+import io.quarkus.arc.Unremovable;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Project;
 import me.escoffier.timeless.model.Section;
@@ -14,6 +15,7 @@ import java.util.Scanner;
 
 @ApplicationScoped
 @CommandLine.Command(name = "talk", description = "Create a 'talk' project")
+@Unremovable
 public class TalkProjectCommand implements Runnable {
 
     @RestClient

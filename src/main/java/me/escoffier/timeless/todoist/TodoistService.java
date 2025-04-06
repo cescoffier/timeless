@@ -37,8 +37,6 @@ public class TodoistService implements Backend {
 
     @Inject @RestClient Todoist todoist;
 
-    @ConfigProperty(name = "todoist.area-prefixes") List<String> prefixesForAreaOfResponsibility;
-
     @Inject @RestClient
     TodoistV9 v9;
 
@@ -152,16 +150,6 @@ public class TodoistService implements Backend {
     @Override
     public List<Project> getSubProject(Project project) {
         return projects.stream().filter(p -> project.id().equalsIgnoreCase(p.parent())).collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean isArea(Project project) {
-        for (String prefix : prefixesForAreaOfResponsibility) {
-            if (project.name().startsWith(prefix)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

@@ -3,10 +3,11 @@ package me.escoffier.timeless.inboxes.google;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
-
+import io.quarkus.arc.Unremovable;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import me.escoffier.timeless.helpers.Hints;
-
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.NewTaskRequest;
@@ -14,15 +15,15 @@ import me.escoffier.timeless.model.Task;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-
-import static me.escoffier.timeless.helpers.Hints.NO_HINT;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 
 @ApplicationScoped
@@ -33,10 +34,13 @@ public class CalendarService implements Inbox {
     @ConfigProperty(name = "meetings.ignored-meetings")
     List<String> ignored;
 
-    @Inject Hints hints;
+    @Inject
+    Hints hints;
 
-    @Inject GoogleAccounts accounts;
-    @Inject Logger logger;
+    @Inject
+    GoogleAccounts accounts;
+    @Inject
+    Logger logger;
 
     @Override
     public List<Runnable> getPlan(Backend backend) {
@@ -65,7 +69,7 @@ public class CalendarService implements Inbox {
 
         for (Task task : existingMeetingTasks) {
             Optional<Meeting> meeting = fetched.stream().filter(s -> s.content().equalsIgnoreCase(task.content)).findFirst();
-            if (meeting.isEmpty()  && ! task.isCompleted()) {
+            if (meeting.isEmpty() && !task.isCompleted()) {
                 // 4 - complete the task
                 actions.add(() -> backend.complete(task));
             }
@@ -114,11 +118,11 @@ public class CalendarService implements Inbox {
                     .execute().getItems();
             List<Meeting> meetings = new ArrayList<>();
             for (Event item : items) {
-                if (isCall(item)  && isAccepted(item)) {
+                if (isCall(item) && isAccepted(item)) {
                     Meeting meeting = new Meeting(item, item.getSummary(), item.getStart().getDateTime().toStringRfc3339());
                     meetings.add(meeting);
                 } else {
-                    if (! isAccepted(item)) {
+                    if (!isAccepted(item)) {
                         logger.infof("\uD83D\uDE44  Ignoring meeting %s - Event has not been accepted", item.getSummary());
                     }
                 }
@@ -130,11 +134,11 @@ public class CalendarService implements Inbox {
     }
 
     private boolean isCall(Event item) {
-        return item.getHangoutLink() != null  || item.getLocation() != null  && item.getLocation().contains("meet.google.com");
+        return item.getHangoutLink() != null || item.getLocation() != null && item.getLocation().contains("meet.google.com");
     }
 
     private boolean isAccepted(Event item) {
-        if (item.getCreator().isSelf()  && item.getStatus().equalsIgnoreCase("confirmed")) {
+        if (item.getCreator().isSelf() && item.getStatus().equalsIgnoreCase("confirmed")) {
             return true;
         }
         List<EventAttendee> attendees = item.getAttendees();

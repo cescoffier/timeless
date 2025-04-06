@@ -1,5 +1,6 @@
 package me.escoffier.timeless;
 
+import io.quarkus.arc.Unremovable;
 import me.escoffier.timeless.model.Label;
 import me.escoffier.timeless.model.Project;
 import me.escoffier.timeless.model.Task;
@@ -23,6 +24,7 @@ import java.util.*;
 
 @ApplicationScoped
 @CommandLine.Command(name = "weekly", description = "Prepare weekly review")
+@Unremovable
 public class WeeklyCommand implements Runnable {
 
     @Inject @RestClient Todoist todoist;

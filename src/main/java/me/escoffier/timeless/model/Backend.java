@@ -17,8 +17,6 @@ public interface Backend {
     List<Project> getProjectRoots();
 
     List<Project> getSubProject(Project project);
-    boolean isArea(Project project);
-
 
     List<Task> getMatchingTasks(Predicate<Task> predicate);
 

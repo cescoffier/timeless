@@ -1,5 +1,6 @@
 package me.escoffier.timeless.inboxes.github;
 
+import io.quarkus.arc.Unremovable;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import me.escoffier.timeless.helpers.Hints;
@@ -34,6 +35,8 @@ public class GithubService implements Inbox {
 
     @ConfigProperty(name = "github.username") String username;
 
+    @ConfigProperty(name = "github.ignored-issues") List<String> ignoredIssues;
+
     @Inject
     Hints hints;
 
@@ -59,6 +62,7 @@ public class GithubService implements Inbox {
     private List<GHPullRequest> getPullRequests(GitHub github) throws InterruptedException {
         LOGGER.info("\uD83D\uDEB6  Retrieving Github Issues...");
         issues.addAll(githubIssues.getOpenIssuesAssignedToMe());
+        filterIgnoredIssues(issues);
 
         LOGGER.infof("\uD83D\uDEB6  %d GitHub issues retrieved", issues.size());
 
@@ -73,6 +77,10 @@ public class GithubService implements Inbox {
         latch.await(1, TimeUnit.MINUTES);
         pool.shutdownNow();
         return prs;
+    }
+
+    private void filterIgnoredIssues(List<Issue> issues) {
+        issues.removeIf(issue -> ignoredIssues.contains(issue.url()));
     }
 
     @Retry

@@ -2,6 +2,7 @@ package me.escoffier.timeless;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import io.quarkus.arc.Unremovable;
 import me.escoffier.timeless.model.Project;
 import me.escoffier.timeless.todoist.TodoistV9;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -22,6 +23,7 @@ import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
 
 @ApplicationScoped
 @CommandLine.Command(name = "report", description = "List completed tasks over the past 8 days")
+@Unremovable
 public class ReportCompletedCommand implements Runnable {
 
     @Inject @RestClient

@@ -22,5 +22,3 @@ quarkus:
     opencensus-api:
       group-id: io.opencensus
       artifact-id: opencensus-api
-
-
