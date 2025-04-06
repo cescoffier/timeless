@@ -1,24 +1,31 @@
 package me.escoffier.timeless.todoist;
 
 import jakarta.annotation.PostConstruct;
-import me.escoffier.timeless.model.*;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import me.escoffier.timeless.model.Backend;
+import me.escoffier.timeless.model.Label;
+import me.escoffier.timeless.model.NewTaskRequest;
+import me.escoffier.timeless.model.Project;
+import me.escoffier.timeless.model.Section;
+import me.escoffier.timeless.model.Task;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static java.time.temporal.ChronoField.HOUR_OF_DAY;
-import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
 
 @ApplicationScoped
 public class TodoistService implements Backend {
@@ -35,10 +42,10 @@ public class TodoistService implements Backend {
 
     private List<Project> roots;
 
-    @Inject @RestClient Todoist todoist;
+    @Inject
+    @RestClient
+    Todoist todoist;
 
-    @Inject @RestClient
-    TodoistV9 v9;
 
     private List<Task> completed;
 
@@ -50,10 +57,9 @@ public class TodoistService implements Backend {
         SyncResponse response = todoist.sync(SyncRequest.INSTANCE);
 
         ZonedDateTime time = Instant.now().minus(Duration.ofDays(7))
-                .atZone(ZoneOffset.UTC)
-                .with(HOUR_OF_DAY, 0).with(MINUTE_OF_HOUR, 0);
+                .atZone(ZoneOffset.UTC).withHour(0).withMinute(0);
         String since = DateTimeFormatter.ISO_INSTANT.format(time);
-        TodoistV9.CompletedTasksResponse completedTasks = v9.getCompletedTasks(200, since);
+        Todoist.CompletedTasksResponse completedTasks = todoist.getCompletedTasks(200, since);
 
         completed = completedTasks.toTasks();
         inbox = response.projects().stream().filter(p -> p.name().equalsIgnoreCase("Inbox"))
@@ -93,7 +99,7 @@ public class TodoistService implements Backend {
         if (priority != -1) {
             request = request.withPriority(priority);
         }
-        if (! labels.isEmpty()) {
+        if (!labels.isEmpty()) {
             request = request.withLabels(labels);
         }
         todoist.addTask(request);
@@ -106,7 +112,7 @@ public class TodoistService implements Backend {
     private Label getLabelByName(String name) {
         var foundLabel = labels.stream().filter(l -> l.getShortName().trim().equalsIgnoreCase(name)).findAny();
 
-        if(foundLabel.isPresent()) {
+        if (foundLabel.isPresent()) {
             return foundLabel.get();
         } else {
             LOGGER.infof("Creating label %s", name);
@@ -186,7 +192,7 @@ public class TodoistService implements Backend {
         if (request.project != null) {
             project = getProjectByName(request.project);
         }
-        if (request.section != null  && project != null) {
+        if (request.section != null && project != null) {
             var l = getSection(project);
             section = l.stream().filter(s -> s.name().contains(request.section)).map(Section::id).findFirst()
                     .orElseThrow(() -> new NoSuchElementException("No section " + request.section + " in " + request.project));

@@ -1,6 +1,8 @@
 package me.escoffier.timeless;
 
 import io.quarkus.arc.Unremovable;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import me.escoffier.timeless.model.Label;
 import me.escoffier.timeless.model.Project;
 import me.escoffier.timeless.model.Task;
@@ -8,37 +10,42 @@ import me.escoffier.timeless.review.ReviewHelper;
 import me.escoffier.timeless.todoist.SyncRequest;
 import me.escoffier.timeless.todoist.SyncResponse;
 import me.escoffier.timeless.todoist.Todoist;
-import me.escoffier.timeless.todoist.TodoistV9;
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import picocli.CommandLine;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 @CommandLine.Command(name = "weekly", description = "Prepare weekly review")
 @Unremovable
 public class WeeklyCommand implements Runnable {
 
-    @Inject @RestClient Todoist todoist;
+    @Inject
+    @RestClient
+    Todoist todoist;
 
-    @Inject @RestClient
-    TodoistV9 todoistV9;
+    @ConfigProperty(name = "todoist.weekly-label")
+    String weekly;
 
-    @ConfigProperty(name = "todoist.weekly-label") String weekly;
+    @ConfigProperty(name = "todoist.waiting-label")
+    String waiting;
 
-    @ConfigProperty(name = "todoist.waiting-label") String waiting;
+    @ConfigProperty(name = "todoist.weekly-review")
+    String reviewProjectName;
 
-    @ConfigProperty(name = "todoist.weekly-review") String reviewProjectName;
-
-    @ConfigProperty(name = "todoist.excluded-upcoming-projects") List<String> excludedProjectsFromUpcoming;
+    @ConfigProperty(name = "todoist.excluded-upcoming-projects")
+    List<String> excludedProjectsFromUpcoming;
 
 
     private StringBuilderWriter writer;
@@ -81,7 +88,7 @@ public class WeeklyCommand implements Runnable {
             }
 
             if (item.due != null && item.due.deadline().isBefore(nextWeek)) {
-                if (item.project == null  || ! excludedProjectsFromUpcoming.contains(item.project.name())) {
+                if (item.project == null || !excludedProjectsFromUpcoming.contains(item.project.name())) {
                     addTask(upcomingDeadlines, item);
                     upcomingTasksCount = upcomingTasksCount + 1;
                 }
@@ -136,7 +143,7 @@ public class WeeklyCommand implements Runnable {
             throw new UncheckedIOException(e);
         }
 
-        ReviewHelper.prepareWeeklyReview(reviewProjectName, todoist, todoistV9, response.projects());
+        ReviewHelper.prepareWeeklyReview(reviewProjectName, todoist, response.projects());
 
     }
 

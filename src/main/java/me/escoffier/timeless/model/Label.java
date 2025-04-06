@@ -1,5 +1,21 @@
 package me.escoffier.timeless.model;
 
+/**
+ * Represents a label.
+ * <pre>
+ *     {@code
+ *     {
+ *      "id": "string",
+ *      "name": "string",
+ *      "color": "string",
+ *      "order": 0,
+ *      "is_favorite": true
+ *      }
+*  }
+ * </pre>
+ * @param name the name
+ * @param id the id
+ */
 public record Label(String name, String id) {
 
     public String getShortName() {
