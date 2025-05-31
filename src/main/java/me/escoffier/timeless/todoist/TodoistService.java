@@ -1,14 +1,16 @@
 package me.escoffier.timeless.todoist;
 
+import io.quarkus.logging.Log;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import me.escoffier.timeless.helpers.Hints;
 import me.escoffier.timeless.model.Backend;
-import me.escoffier.timeless.model.Label;
 import me.escoffier.timeless.model.NewTaskRequest;
 import me.escoffier.timeless.model.Project;
 import me.escoffier.timeless.model.Section;
 import me.escoffier.timeless.model.Task;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
@@ -35,7 +37,6 @@ public class TodoistService implements Backend {
     private Project inbox;
     private List<Project> projects;
     private List<Task> tasks;
-    private List<Label> labels;
 
     private Map<Project, List<Section>> sectionsPerProject;
 
@@ -46,6 +47,9 @@ public class TodoistService implements Backend {
     @RestClient
     Todoist todoist;
 
+
+    @ConfigProperty(defaultValue = "false", name = "todoist.cleanup-enabled")
+    boolean cleanupEnabled;
 
     private List<Task> completed;
 
@@ -81,7 +85,6 @@ public class TodoistService implements Backend {
         }
 
         this.tasks = response.items();
-        labels = response.labels();
     }
 
     public void addTask(String content, String deadline, Project project, String section, int priority, List<String> labels, String description) {
@@ -103,21 +106,6 @@ public class TodoistService implements Backend {
             request = request.withLabels(labels);
         }
         todoist.addTask(request);
-    }
-
-    private List<String> getLabelIds(List<String> labels) {
-        return labels.stream().map(s -> getLabelByName(s).id()).collect(Collectors.toList());
-    }
-
-    private Label getLabelByName(String name) {
-        var foundLabel = labels.stream().filter(l -> l.getShortName().trim().equalsIgnoreCase(name)).findAny();
-
-        if (foundLabel.isPresent()) {
-            return foundLabel.get();
-        } else {
-            LOGGER.infof("Creating label %s", name);
-            return todoist.createLabel(new Todoist.LabelCreationRequest(name));
-        }
     }
 
     public Project getProjectByName(String name) {
@@ -209,5 +197,44 @@ public class TodoistService implements Backend {
     @Override
     public Project getProject(String name) {
         return projects.stream().filter(p -> p.name().equalsIgnoreCase(name)).findFirst().orElse(null);
+    }
+
+    @Inject
+    Hints hints;
+
+    @Override
+    public void cleanupInbox() {
+        if (!cleanupEnabled) {
+            return;
+        }
+
+        // Retrieve all the tasks in the inbox
+        List<Task> tasks = getMatchingTasks(t -> t.project != null && t.project.name().equalsIgnoreCase("Inbox"));
+        // For each task, check if we have hints
+        for (Task task : tasks) {
+            // Check if we have hints
+            var hint = hints.lookup(task.content);
+            if (hint == null || hint.project() == null) {
+                continue;
+            }
+            // Check if the task is already in the project
+            Project project = getProjectByName(hint.project());
+            if (project.name().equalsIgnoreCase("Inbox")) {
+                continue;
+            }
+            // Move the task to the associated project
+            String sectionId = null;
+            if (hint.section().isPresent()) {
+                // We need to find the section id
+                var sections = getSection(project);
+                String name = hint.section().get();
+                var section = sections.stream().filter(s -> s.name().equalsIgnoreCase(name)).findFirst();
+                sectionId = section.map(Section::id).orElse(null);
+            }
+
+            Todoist.MoveRequest request = new Todoist.MoveRequest(project.id(), sectionId);
+            Log.infof("\uD83D\uDD04 Moving task %s to project/section %s", task.content, request);
+            todoist.moveTask(task.id, request);
+        }
     }
 }

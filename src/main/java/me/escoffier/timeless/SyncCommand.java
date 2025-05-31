@@ -64,6 +64,8 @@ public class SyncCommand implements Runnable {
             }
         });
 
+        backend.cleanupInbox();
+
         // Find duplicates
         List<Task> tasks = backend.getAllTasks();
         for (Task t : tasks) {

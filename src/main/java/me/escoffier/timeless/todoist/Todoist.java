@@ -90,6 +90,17 @@ public interface Todoist {
     @ClientQueryParam(name = "until", value = "{today}")
     CompletedTasksResponse getCompletedTasks(@QueryParam("limit") int limit, @QueryParam("since") String since);
 
+    @POST
+    @Path("/v1/tasks/{id}/move")
+    @ClientHeaderParam(name = "Authorization", value = "{lookupAuth}")
+    void moveTask(@PathParam("id") String id, MoveRequest request);
+
+    record MoveRequest(
+            @JsonProperty("project_id") @JsonInclude(JsonInclude.Include.NON_DEFAULT) String projectId,
+            @JsonProperty("section_id") @JsonInclude(JsonInclude.Include.NON_DEFAULT) String sectionId
+    ) {
+    }
+
     default String lookupAuth() {
         return "Bearer " + token();
     }

@@ -38,4 +38,8 @@ public interface Backend {
     void complete(Task task);
 
     Project getProject(String name);
+
+    default void cleanupInbox() {
+        // do nothing
+    }
 }
