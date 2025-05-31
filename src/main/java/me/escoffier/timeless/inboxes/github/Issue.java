@@ -1,5 +1,6 @@
 package me.escoffier.timeless.inboxes.github;
 
+import me.escoffier.timeless.helpers.HintManager;
 import me.escoffier.timeless.helpers.Hints;
 import me.escoffier.timeless.model.NewTaskRequest;
 
@@ -29,7 +30,7 @@ public class Issue {
         return "open".equalsIgnoreCase(state);
     }
 
-    public NewTaskRequest asNewTaskRequest(Hints hints) {
+    public NewTaskRequest asNewTaskRequest(HintManager hints) {
         String content = getTaskName();
         Hints.Hint hint = hints.lookup(html_url);
         var request = new NewTaskRequest(

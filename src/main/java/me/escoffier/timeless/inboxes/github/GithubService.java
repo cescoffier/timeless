@@ -1,9 +1,9 @@
 package me.escoffier.timeless.inboxes.github;
 
-import io.quarkus.arc.Unremovable;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import me.escoffier.timeless.helpers.Hints;
+import me.escoffier.timeless.helpers.HintManager;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.NewTaskRequest;
@@ -13,14 +13,23 @@ import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
-import org.kohsuke.github.*;
+import org.kohsuke.github.GHIssueState;
+import org.kohsuke.github.GHPullRequest;
+import org.kohsuke.github.GHPullRequestReview;
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHUser;
+import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static me.escoffier.timeless.helpers.DueDates.inThreeDays;
 
@@ -29,16 +38,20 @@ public class GithubService implements Inbox {
 
     private static final Logger LOGGER = Logger.getLogger("Github");
 
-    @RestClient GithubIssues githubIssues;
+    @RestClient
+    GithubIssues githubIssues;
 
-    @ConfigProperty(name = "github.projects") List<String> repositories;
+    @ConfigProperty(name = "github.projects")
+    List<String> repositories;
 
-    @ConfigProperty(name = "github.username") String username;
+    @ConfigProperty(name = "github.username")
+    String username;
 
-    @ConfigProperty(name = "github.ignored-issues") List<String> ignoredIssues;
+    @ConfigProperty(name = "github.ignored-issues")
+    List<String> ignoredIssues;
 
     @Inject
-    Hints hints;
+    HintManager hints;
 
     private final List<Issue> issues = new ArrayList<>();
     private final List<Review> reviews = new ArrayList<>();
@@ -99,7 +112,7 @@ public class GithubService implements Inbox {
     private void checkForFollowUps(List<GHPullRequest> prs) throws IOException {
         for (GHPullRequest pr : prs) {
             // Check requested reviews
-            if (pr.getUser().getLogin().equals(username)  && ! pr.isDraft()) {
+            if (pr.getUser().getLogin().equals(username) && !pr.isDraft()) {
                 followUps.add(pr);
             }
         }
@@ -202,7 +215,7 @@ public class GithubService implements Inbox {
         // 3 - If backend contains issue tasks (existingFollowUps) without an associated PR in fetched -> complete task
 
         for (GHPullRequest pr : followUps) {
-            NewTaskRequest request = createFollowUpTaskRequestForPr(pr, hints);
+            NewTaskRequest request = createFollowUpTaskRequestForPr(pr);
             Optional<Task> maybe = backend.getTaskMatchingRequest(request);
 
             if (maybe.isEmpty()) {
@@ -213,7 +226,7 @@ public class GithubService implements Inbox {
 
         for (Task task : existingFollowUps) {
             Optional<NewTaskRequest> r = followUps.stream()
-                    .map(pr -> createFollowUpTaskRequestForPr(pr, hints))
+                    .map(this::createFollowUpTaskRequestForPr)
                     .filter(s -> task.content.startsWith(s.content))
                     .findFirst();
             if (r.isEmpty()) {
@@ -225,7 +238,7 @@ public class GithubService implements Inbox {
         return actions;
     }
 
-    private NewTaskRequest createFollowUpTaskRequestForPr(GHPullRequest pr, Hints hints) {
+    private NewTaskRequest createFollowUpTaskRequestForPr(GHPullRequest pr) {
         String content = "Follow Up PR " + pr.getTitle();
 
         var h = hints.lookup(pr.getHtmlUrl().toExternalForm());
@@ -236,7 +249,7 @@ public class GithubService implements Inbox {
                 h.section().orElse(null),
                 inThreeDays()
         );
-        request.addLabels("Devel","timeless/github");
+        request.addLabels("Devel", "timeless/github");
         return request;
     }
 

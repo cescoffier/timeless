@@ -14,15 +14,6 @@ public interface Hints {
     @WithParentName
     List<Hint> hints();
 
-    default Hints.Hint lookup(String content) {
-        for (Hints.Hint hint : hints()) {
-            if (hint.match(content)) {
-                return hint;
-            }
-        }
-        return NO_HINT;
-    }
-
 
     interface Hint {
         String keywords();
@@ -38,7 +29,7 @@ public interface Hints {
 
     }
 
-    public static final Hints.Hint NO_HINT = new Hints.Hint() {
+    Hints.Hint NO_HINT = new Hints.Hint() {
         @Override
         public String keywords() {
             return null;

@@ -3,10 +3,10 @@ package me.escoffier.timeless.inboxes.google;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
-import io.quarkus.arc.Unremovable;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import me.escoffier.timeless.helpers.HintManager;
 import me.escoffier.timeless.helpers.Hints;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
@@ -35,7 +35,7 @@ public class CalendarService implements Inbox {
     List<String> ignored;
 
     @Inject
-    Hints hints;
+    HintManager hints;
 
     @Inject
     GoogleAccounts accounts;

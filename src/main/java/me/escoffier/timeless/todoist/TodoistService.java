@@ -4,7 +4,7 @@ import io.quarkus.logging.Log;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import me.escoffier.timeless.helpers.Hints;
+import me.escoffier.timeless.helpers.HintManager;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.NewTaskRequest;
 import me.escoffier.timeless.model.Project;
@@ -200,7 +200,7 @@ public class TodoistService implements Backend {
     }
 
     @Inject
-    Hints hints;
+    HintManager hints;
 
     @Override
     public void cleanupInbox() {
