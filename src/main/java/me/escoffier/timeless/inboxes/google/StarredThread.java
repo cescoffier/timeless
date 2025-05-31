@@ -15,7 +15,7 @@ public class StarredThread {
     private final Message message;
 
     public StarredThread(Account account, String threadId, Message message, String subject, String snippet,
-            String sender) {
+                         String sender) {
         this.account = account;
         this.message = message;
         this.threadId = threadId;
@@ -65,9 +65,8 @@ public class StarredThread {
     }
 
     public String content() {
-
         return String
-                .format("[%s](%s)", subject, link()
+                .format("[Reply to '%s'](%s)", subject, link()
                 );
     }
 
@@ -76,11 +75,13 @@ public class StarredThread {
         private final StarredThread thread;
 
         public MailTaskRequest(StarredThread thread) {
-            super(thread.subject(),
+            super("Reply to '%s'".formatted(thread.subject()),
                     thread.link(),
                     null,
                     todayOrTomorrow());
+            this.priority = 2;
             this.thread = thread;
+            this.description = "From: " + thread.sender + "\n\n" + thread.snippet;
             this.addLabels("timeless/gmail");
         }
 

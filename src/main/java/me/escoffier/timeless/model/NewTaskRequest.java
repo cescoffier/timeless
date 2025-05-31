@@ -12,7 +12,7 @@ public class NewTaskRequest {
     public final List<String> labels = new ArrayList<>();
     public String section;
     public int priority = -1;
-    public final String description;
+    public String description;
 
     public NewTaskRequest(String content, String project, String due) {
         this.content = content;
@@ -33,7 +33,7 @@ public class NewTaskRequest {
     public NewTaskRequest(String content, String link, String project, String section, String due) {
         this.content = String.format("[%s](%s)", content, link);
         this.project = project;
-        if (section != null  && section.length() > 0) {
+        if (section != null  && !section.isEmpty()) {
             this.section = section;
         } else {
             this.section = null;

@@ -33,7 +33,7 @@ public class Meeting {
         if (date.contains("T")) {
             d = d.substring(0, date.indexOf("T"));
         }
-        return String.format("[Prepare meeting '%s (%s)'](%s)", title, d, item.getHtmlLink());
+        return String.format("[Prepare meeting '%s' (%s)](%s)", title, d, item.getHtmlLink());
     }
 
     private static class MeetingTaskRequest extends NewTaskRequest {
@@ -45,8 +45,9 @@ public class Meeting {
                     hint.project(),
                     meeting.date);
             this.meeting = meeting;
+            this.description = "URL: " + meeting.item.getHtmlLink() + "\n\n" + meeting.item.getDescription();
             this.section = hint.section().orElse(null);
-            setPriority(2);
+            setPriority(3);
             addLabels("Meeting");
             addLabels("timeless/gcal");
         }
