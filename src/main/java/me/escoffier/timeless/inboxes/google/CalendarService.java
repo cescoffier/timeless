@@ -119,6 +119,10 @@ public class CalendarService implements Inbox {
             List<Meeting> meetings = new ArrayList<>();
             for (Event item : items) {
                 if (isCall(item) && isAccepted(item)) {
+                    if (item.getStart().getDateTime() == null) {
+                        logger.infof("\uD83D\uDE44  Ignoring meeting %s - Event has no start date", item.getSummary());
+                        continue;
+                    }
                     Meeting meeting = new Meeting(item, item.getSummary(), item.getStart().getDateTime().toStringRfc3339());
                     meetings.add(meeting);
                 } else {

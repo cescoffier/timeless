@@ -32,7 +32,7 @@ public class Issue {
     public NewTaskRequest asNewTaskRequest(Hints hints) {
         String content = getTaskName();
         Hints.Hint hint = hints.lookup(html_url);
-        NewTaskRequest request = new NewTaskRequest(
+        var request = new NewTaskRequest(
                 content,
                 html_url,
                 hint.project(),

@@ -17,13 +17,21 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import java.io.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class GoogleAccounts {
@@ -47,7 +55,7 @@ public class GoogleAccounts {
 
     private static final List<String> DRIVE_SCOPES = Arrays.asList(DriveScopes.DRIVE_FILE, DriveScopes.DRIVE, DriveScopes.DRIVE_METADATA);
 
-    private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+    private static final String CREDENTIALS_FILE_PATH = "/credentials-%s.json";
 
     @ConfigProperty(name = "google.accounts")
     List<String> names;
@@ -61,6 +69,7 @@ public class GoogleAccounts {
 
     @PostConstruct
     public void init() {
+        LOGGER.infof("Initializing Google Accounts with names %s", names);
         try {
             var transport = GoogleNetHttpTransport.newTrustedTransport();
             var port = 8888;
@@ -94,18 +103,19 @@ public class GoogleAccounts {
      *
      * @param transport The network HTTP Transport.
      * @return An authorized Credential object.
-     * @throws IOException If the credentials.json file cannot be found.
+     * @throws IOException If the credentials-personal.json file cannot be found.
      */
     private Credential getCredentials(String name, NetHttpTransport transport, int port) throws IOException {
         // Load client secrets.
-        var in = GoogleAccounts.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        String file = CREDENTIALS_FILE_PATH.formatted(name);
+        var in = GoogleAccounts.class.getResourceAsStream(file);
         if (in == null) {
             // total hack to look up in current dir if not found in project which is just wrong.
             // todo: make this location actually relative.
             try {
-                in = new FileInputStream(System.getProperty("user.dir") + CREDENTIALS_FILE_PATH);
+                in = new FileInputStream(System.getProperty("user.dir") + file);
             } catch (FileNotFoundException ffe) {
-                throw new FileNotFoundException("Resource nor file not found: " + CREDENTIALS_FILE_PATH);
+                throw new FileNotFoundException("Resource nor file not found: " + file);
             }
         }
 
