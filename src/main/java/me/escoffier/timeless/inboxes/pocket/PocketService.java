@@ -1,6 +1,7 @@
 package me.escoffier.timeless.inboxes.pocket;
 
-import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import me.escoffier.timeless.model.Backend;
 import me.escoffier.timeless.model.Inbox;
 import me.escoffier.timeless.model.NewTaskRequest;
@@ -9,8 +10,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,15 +22,29 @@ public class PocketService implements Inbox {
 
     private ReadList list;
 
-    @Inject @RestClient Pocket pocket;
+    @Inject
+    @RestClient
+    Pocket pocket;
 
-    @ConfigProperty(name = "pocket.limit", defaultValue = "100") int limit;
+    @ConfigProperty(name = "pocket.limit", defaultValue = "100")
+    int limit;
 
-    @PostConstruct
+    @ConfigProperty(name = "pocket.enabled", defaultValue = "false")
+    boolean enabled;
+
     public void fetch() {
+        if (!enabled) {
+            LOGGER.debug("Pocket inbox is disabled. Skipping fetch.");
+            return;
+        }
         LOGGER.info("\uD83D\uDEB6 Retrieving reading list from Pocket...");
         list = pocket.getReadList(Pocket.RetrieveRequest.INSTANCE);
         LOGGER.infof("\uD83D\uDEB6  Read List size: %d", list.getList().size());
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 
     @Override
@@ -66,7 +79,7 @@ public class PocketService implements Inbox {
             }
         }
 
-        if (list.getList().keySet().size() >= limit  && backend.getMatchingTasks(t -> t.content.equalsIgnoreCase(TOO_MANY_ARTICLES)).isEmpty()) {
+        if (list.getList().keySet().size() >= limit && backend.getMatchingTasks(t -> t.content.equalsIgnoreCase(TOO_MANY_ARTICLES)).isEmpty()) {
             actions.add(() -> backend.create(new NewTaskRequest(TOO_MANY_ARTICLES, Item.READING_LIST_PROJECT, "sunday")));
         }
 

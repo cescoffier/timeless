@@ -45,3 +45,39 @@ hints:
 
 If inbox cleanup is enabled (using `todoist.cleanup-enabled: true`), hints are applied to each task from the inbox. 
 If a task matches a hint, it is assigned to the project and section specified in the hint.
+
+
+## Reading list manager 
+
+Timeless can be used to manage your reading list. It will create a task for each item in the reading list. It currently supports the soon defunct Pocket and Instapaper.
+
+### Pocket
+
+To use Pocket, you need to create an app on the Pocket website and get your consumer key and access token. You can then configure Timeless to use Pocket by adding the following to your `timeless.yaml`:
+
+```yaml
+pocket:
+  enabled: true # False by default, set to true to enable Pocket integration
+  consumer-key: <your-consumer-key>
+  access-token: <your-access-token>
+  limit: 100 # Max number of item in the reading list before it adds a taks to curate the reading list
+```
+Pocket uses the `Reading List` project to create tasks for the items in the reading list. That project must exist in Todoist.
+
+
+### Instapaper
+
+To use Instapaper, you need to create an app on the Instapaper website and get your consumer key and consumer secret. You can then configure Timeless to use Instapaper by adding the following to your `timeless.yaml`:
+
+```yaml
+instapaper:
+  enabled: true # False by default, set to true to enable Instapaper integration
+  consumer-id: <your-consumer-id>
+  consumer-secret: <your-consumer-secret>
+  username: <your-instapaper-username>
+  password: <your-instapaper-password>
+```
+
+Instapaper uses the `Reading List` project to create tasks for the items in the reading list. That project must exist in Todoist. You can configure the project name using the `instapaper.reading-list-project` property in `timeless.yaml`.
+
+You can also configure the `instapaper.limit` property to specify the maximum number of items in the reading list before it adds a task to curate the reading list.

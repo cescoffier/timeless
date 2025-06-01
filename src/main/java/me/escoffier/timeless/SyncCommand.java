@@ -29,16 +29,28 @@ public class SyncCommand implements Runnable {
     @Inject
     Instance<Inbox> inboxes;
 
+    private List<Inbox> getEnabledInboxes() {
+        List<Inbox> enabled = new ArrayList<>();
+        inboxes.stream().forEach(i -> {
+            if (i.isEnabled()) {
+                enabled.add(i);
+            } else {
+                LOGGER.infof("\uD83D\uDEB6 Inbox %s is disabled", i.getClass().getSimpleName());
+            }
+        });
+        return enabled;
+    }
+
     @Override
     public void run() {
         List<Runnable> plan = new ArrayList<>();
         AtomicInteger boxCount = new AtomicInteger();
 
-        LOGGER.infof("Found %d inboxes", inboxes.stream().count());
+        List<Inbox> list = getEnabledInboxes();
+        LOGGER.infof("Found %d inboxes", list.size());
+        CountDownLatch latch = new CountDownLatch(list.size());
 
-        CountDownLatch latch = new CountDownLatch((int) inboxes.stream().count());
-
-        inboxes.stream().forEach(i -> {
+        list.forEach(i -> {
             Thread.ofVirtual().start(() -> {
                 try {
                     boxCount.getAndIncrement();

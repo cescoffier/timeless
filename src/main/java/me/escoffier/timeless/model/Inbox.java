@@ -7,4 +7,7 @@ public interface Inbox {
 
     List<Runnable> getPlan(Backend backend);
 
+    default boolean isEnabled() {
+        return true;
+    }
 }

@@ -41,6 +41,7 @@ StoredCredential
 token*/StoredCredential*
 credentials.json
 credentials-*.json
+token-*
 timeless.yaml
 
 .quarkus/cli/plugins/quarkus-cli-catalog.json
