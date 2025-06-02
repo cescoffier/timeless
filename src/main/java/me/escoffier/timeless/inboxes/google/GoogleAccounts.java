@@ -57,8 +57,9 @@ public class GoogleAccounts {
 
     private static final String CREDENTIALS_FILE_PATH = "/credentials-%s.json";
 
-    @ConfigProperty(name = "google.accounts")
-    List<String> names;
+    @Inject
+    GAccounts gaccounts;
+
     @ConfigProperty(name = "google.token-directory-prefix", defaultValue = "token")
     String tokenDirectoryPrefix;
 
@@ -69,11 +70,14 @@ public class GoogleAccounts {
 
     @PostConstruct
     public void init() {
-        LOGGER.infof("Initializing Google Accounts with names %s", names);
+        LOGGER.infof("Initializing Google Accounts with names %s", gaccounts.accounts().keySet());
         try {
             var transport = GoogleNetHttpTransport.newTrustedTransport();
             var port = 8888;
-            for (String name : names) {
+            for (Map.Entry<String, GAccount> entry : gaccounts.accounts().entrySet()) {
+                var name = entry.getKey();
+                var gaccount = entry.getValue();
+
                 logger.infof("\uD83D\uDEB6  Setting up %s Google account", name);
                 var credentials = getCredentials(name, transport, port);
                 port++;
@@ -88,7 +92,7 @@ public class GoogleAccounts {
                 var drive = new Drive.Builder(transport, JSON_FACTORY, credentials)
                         .setApplicationName(APPLICATION_NAME)
                         .build();
-                var account = new Account(name, email, gmail, calendar, drive);
+                var account = new Account(name, email, gmail, calendar, drive, gaccount.inboxid());
                 logger.infof("\uD83D\uDEB6  Google account configured for %s (%s)", name, email);
                 accounts.put(name, account);
             }

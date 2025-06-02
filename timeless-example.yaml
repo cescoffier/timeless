@@ -21,8 +21,11 @@ github:
     - jbang: https://github.com/jbangdev
   username: maxandersen
 
-google:
-  accounts: personal,redhat
+google: 
+    personal:
+      inboxid: 1
+    redhat:
+      inboxid: 0
 
 pocket:
   consumer-key: "pocket-secret-token"

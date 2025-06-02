@@ -11,13 +11,15 @@ public class Account {
     private final Calendar calendar;
     private final Drive drive;
     private final String email;
+    private final int inboxid;
 
-    Account(String name, String email, Gmail gmail, Calendar calendar, Drive drive) {
+    Account(String name, String email, Gmail gmail, Calendar calendar, Drive drive, int inboxid) {
         this.name = name;
         this.email = email;
         this.gmail = gmail;
         this.calendar = calendar;
         this.drive = drive;
+        this.inboxid = inboxid;
     }
 
     public String name() {
@@ -38,5 +40,9 @@ public class Account {
 
     public String email() {
         return email;
+    }
+
+    public int inboxid() {
+        return inboxid;
     }
 }
