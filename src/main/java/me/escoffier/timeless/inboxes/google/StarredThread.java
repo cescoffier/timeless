@@ -53,11 +53,8 @@ public class StarredThread {
     }
 
     String link() {
-        int inboxId = 0;
-        if (account.name().equalsIgnoreCase("redhat")) {
-            inboxId = 1;
-        }
-
+        int inboxId = account().inboxid();
+    
         return String
                 .format("https://mail.google.com/mail/u/%d/#inbox/%s", inboxId,
                         message.getId()
